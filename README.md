@@ -34,7 +34,7 @@ An enhanced interface for [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) with 
 
 - **Windows 10/11** or **Linux** (Docker)
 - **NVIDIA GPU** with 8GB+ VRAM
-- **Python 3.10+**
+- **Python 3.10-3.12** (auto-installs a bundled version if needed)
 
 ---
 
