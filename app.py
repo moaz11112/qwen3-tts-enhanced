@@ -135,8 +135,8 @@ print(f"Data directory: {DATA_DIR}")
 
 # Preset speakers for CustomVoice model
 SPEAKERS = [
-    "Chelsie", "Ethan", "Vivian", "Ryan", "Ayla", "Jordan",
-    "Sakura", "Hiroshi", "Yuna", "Takeshi"
+    "Aiden", "Dylan", "Vivian", "Eric", "Ono_Anna", "Ryan",
+    "Serena", "Sohee", "Uncle_fu"
 ]
 
 LANGUAGES = [
