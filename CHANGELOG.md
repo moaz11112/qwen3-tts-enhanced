@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## 1.3.4 - 2026-02-02
+
+- Fixed microphone/live recording broken on Gradio 6.x (browser records WebM but backend expected WAV; all audio inputs now auto-convert)
+- Fixed clone_generate crash when selected voice file doesn't exist
+- Added path traversal protection to voice name inputs
+- Fixed design_generate crash when variation slider is set below 1
+- Improved audio normalization with minimum peak threshold (avoids amplifying near-silence)
+- Improved combine_audio_files performance
+- Added .dockerignore for faster Docker builds, cleaned up .gitignore
+- Improved internal test coverage and Docker test infrastructure
+
 ## 1.3.3 - 2026-01-31
 
 - Fixed preset speaker names to match Qwen3-TTS CustomVoice model (#7 by @CoLorenzo)

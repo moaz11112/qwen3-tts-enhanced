@@ -23,7 +23,7 @@ An enhanced interface for [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) with 
 |---------|-------------|
 | 🎤 **Voice Clone** | Clone voices from short audio (3+ seconds) |
 | 🎭 **Create Voice** | Combine multiple samples with per-file transcripts |
-| 👤 **Custom Voice** | 10 preset speakers with emotion control |
+| 👤 **Custom Voice** | 9 preset speakers with emotion control |
 | ✨ **Voice Design** | Create voices from text descriptions |
 | 💾 **Save & Load** | Keep voices as portable `.pt` files |
 | ⚙️ **Settings** | Configure data folder, persists across updates |

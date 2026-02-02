@@ -78,11 +78,13 @@ def load_config():
 
 def save_config(config):
     """Save config to JSON file."""
-    import json
     config_path = get_config_path()
     config_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(config_path, "w") as f:
-        json.dump(config, f, indent=2)
+    try:
+        with open(config_path, "w") as f:
+            json.dump(config, f, indent=2)
+    except (PermissionError, OSError) as e:
+        print(f"Warning: could not save config: {e}")
 
 def get_data_dir():
     """Get the user data directory for persistent storage.
@@ -208,6 +210,23 @@ def sanitize_filename(text, max_len=30):
     return clean[:max_len].strip('_')
 
 
+def validate_voice_name(name):
+    """Sanitize and validate a voice name for safe filesystem use.
+
+    Returns the sanitized name, or empty string if invalid.
+    Prevents path traversal by sanitizing special characters and
+    verifying the resolved path stays within VOICES_DIR.
+    """
+    name = sanitize_filename(name.strip(), max_len=100)
+    if not name:
+        return ""
+    # Defense-in-depth: verify resolved path stays within VOICES_DIR
+    target = (VOICES_DIR / f"{name}.pt").resolve()
+    if not str(target).startswith(str(VOICES_DIR.resolve())):
+        return ""
+    return name
+
+
 def save_audio(wav, sr, prefix="output", text="", auto_save=True):
     """Save generated audio. If auto_save=False, saves to temp directory."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -246,7 +265,7 @@ def save_multiple_audio(wavs, sr, prefix="output", text="", auto_save=True):
 def normalize_audio(audio, target_peak=0.9):
     """Normalize audio to target peak level (0-1). Default -1dB."""
     peak = np.abs(audio).max()
-    if peak > 0:
+    if peak > 0.001:  # Skip near-silent audio to avoid amplifying noise
         return audio * (target_peak / peak)
     return audio
 
@@ -281,17 +300,17 @@ def combine_audio_files(audio_paths, apply_noise_reduction=True):
     if not valid_paths:
         return None, None
     
-    combined_audio = []
+    audio_segments = []
     target_sr = None
-    
+
     for path in valid_paths:
         try:
             audio, sr = sf.read(path)
-            
+
             # Convert stereo to mono if needed
             if len(audio.shape) > 1:
                 audio = audio.mean(axis=1)
-            
+
             if target_sr is None:
                 target_sr = sr
             elif sr != target_sr:
@@ -301,26 +320,25 @@ def combine_audio_files(audio_paths, apply_noise_reduction=True):
                     audio = librosa.resample(audio, orig_sr=sr, target_sr=target_sr)
                 except ImportError:
                     print("Warning: librosa not installed, skipping resample")
-            
+
             # Apply noise reduction (light, conservative)
             if apply_noise_reduction:
                 audio = clean_audio(audio, target_sr)
-            
+
             # Normalize each clip to consistent level (-1dB peak)
             audio = normalize_audio(audio, target_peak=0.9)
-            
-            # Add small silence between clips (0.3 seconds)
-            silence = np.zeros(int(target_sr * 0.3))
-            combined_audio.extend(audio.tolist())
-            combined_audio.extend(silence.tolist())
+
+            # Add clip and small silence between clips (0.3 seconds)
+            audio_segments.append(audio)
+            audio_segments.append(np.zeros(int(target_sr * 0.3)))
         except Exception as e:
             print(f"Warning: Could not load {path}: {e}")
             continue
-    
-    if not combined_audio:
+
+    if not audio_segments:
         return None, None
-    
-    return np.array(combined_audio), target_sr
+
+    return np.concatenate(audio_segments), target_sr
 
 
 def get_saved_voices():
@@ -377,7 +395,7 @@ def clone_generate(text, language, saved_voice_label, ref_audio, ref_text, num_v
                     with open(pkl_path, "rb") as f:
                         prompt = pickle.load(f)
                 else:
-                    return None, "", f"❌ Voice file not found: {saved_voice}"
+                    return gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), f"❌ Voice file not found: {saved_voice}"
                 wavs, sr = m.generate_voice_clone(
                     text=text, language=language, voice_clone_prompt=prompt
                 )
@@ -414,9 +432,11 @@ def clone_save(name, ref_audio, ref_text):
         return "❌ Enter a name for the voice", gr.update()
     if ref_audio is None:
         return "❌ Upload reference audio first", gr.update()
-    
+
     m = get_clone_model()
-    name = name.strip().replace(" ", "_")
+    name = validate_voice_name(name)
+    if not name:
+        return "❌ Invalid voice name", gr.update()
     
     try:
         prompt = m.create_voice_clone_prompt(
@@ -493,8 +513,10 @@ def create_voice_multi_ref(name, audio1, text1, audio2, text2, audio3, text3, au
     combined_transcript = " ".join([t for t in transcripts if t]).strip()
     
     m = get_clone_model()
-    name = name.strip().replace(" ", "_")
-    
+    name = validate_voice_name(name)
+    if not name:
+        return None, "❌ Invalid voice name", gr.update()
+
     try:
         if len(audio_files) == 1:
             # Single file - process it
@@ -579,7 +601,7 @@ def design_generate(text, language, instruct, num_variations, auto_save):
         return gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), "❌ Enter a voice description"
     
     m = get_design_model()
-    num_variations = int(num_variations)
+    num_variations = max(1, int(num_variations))
     
     try:
         all_wavs = []
@@ -612,7 +634,9 @@ def design_and_save(name, sample_text, language, instruct):
     
     design_m = get_design_model()
     clone_m = get_clone_model()
-    name = name.strip().replace(" ", "_")
+    name = validate_voice_name(name)
+    if not name:
+        return None, "❌ Invalid voice name", gr.update()
     
     try:
         wavs, sr = design_m.generate_voice_design(
@@ -656,7 +680,7 @@ with gr.Blocks(title="Qwen3-TTS Enhanced", analytics_enabled=False, delete_cache
                         value="(None - use new audio)",
                         interactive=True,
                     )
-                    vc_ref_audio = gr.Audio(label="Reference Audio (3+ sec)", type="filepath")
+                    vc_ref_audio = gr.Audio(label="Reference Audio (3+ sec)", type="filepath", format="wav")
                     vc_ref_text = gr.Textbox(label="Transcript (optional, improves quality)", lines=2)
                     
                     gr.Markdown("### 💾 Save This Voice")
@@ -794,23 +818,23 @@ with gr.Blocks(title="Qwen3-TTS Enhanced", analytics_enabled=False, delete_cache
             
             with gr.Row():
                 with gr.Column():
-                    cv_audio1 = gr.Audio(label="Audio 1 (required)", type="filepath")
+                    cv_audio1 = gr.Audio(label="Audio 1 (required)", type="filepath", format="wav")
                     cv_text1 = gr.Textbox(label="Transcript 1", placeholder="What is said in audio 1...", lines=2)
                 with gr.Column():
-                    cv_audio2 = gr.Audio(label="Audio 2 (optional)", type="filepath")
+                    cv_audio2 = gr.Audio(label="Audio 2 (optional)", type="filepath", format="wav")
                     cv_text2 = gr.Textbox(label="Transcript 2", placeholder="What is said in audio 2...", lines=2)
-            
+
             with gr.Row():
                 with gr.Column():
-                    cv_audio3 = gr.Audio(label="Audio 3 (optional)", type="filepath")
+                    cv_audio3 = gr.Audio(label="Audio 3 (optional)", type="filepath", format="wav")
                     cv_text3 = gr.Textbox(label="Transcript 3", placeholder="What is said in audio 3...", lines=2)
                 with gr.Column():
-                    cv_audio4 = gr.Audio(label="Audio 4 (optional)", type="filepath")
+                    cv_audio4 = gr.Audio(label="Audio 4 (optional)", type="filepath", format="wav")
                     cv_text4 = gr.Textbox(label="Transcript 4", placeholder="What is said in audio 4...", lines=2)
-            
+
             with gr.Row():
                 with gr.Column():
-                    cv_audio5 = gr.Audio(label="Audio 5 (optional)", type="filepath")
+                    cv_audio5 = gr.Audio(label="Audio 5 (optional)", type="filepath", format="wav")
                     cv_text5 = gr.Textbox(label="Transcript 5", placeholder="What is said in audio 5...", lines=2)
                 with gr.Column():
                     cv_denoise = gr.Checkbox(

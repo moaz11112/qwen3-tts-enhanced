@@ -1,0 +1,48 @@
+# Reduce Docker build context size and prevent accidental COPY of sensitive files
+# Note: Dockerfile only does "COPY app.py ." — this is a safety net + speed optimization
+
+# Large local directories (can be hundreds of MB to GB)
+venv/
+.venv/
+python/
+cache/
+data/
+
+# Git history
+.git/
+
+# Model files (downloaded at runtime, not baked into image)
+*.bin
+*.safetensors
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Test artifacts (tests/ needed by Dockerfile.test, not excluded)
+test_results/
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+# AI/IDE tool configs
+.claude/
+.kilocode/
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (avoid sending to daemon recursively)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Everything except app.py is non-essential for the build
+# but we list explicitly rather than using a blanket exclude
